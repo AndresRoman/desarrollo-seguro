@@ -1,0 +1,78 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Pizzas</PageTitle>
+
+<h1>Pizzas</h1>
+<button class="btn btn-secondary" @onclick="GetPizzas">Refresh</button>
+
+<button class="btn btn-primary" @onclick="CreatePizza">Create</button>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Size</th>
+        <th>GlutenFree</th>
+        <th>Price</th>
+        <th>Options</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var pizza in _pizzas!)
+    {
+        <tr>
+            <td>@pizza.Id</td>
+            <td>@pizza.Name</td>
+            <td>@pizza.Size</td>
+            <td>
+                <span class="p-1 rounded-circle d-block"
+
+                      style="background-color: @(pizza.IsGlutenFree ? "#28a745" : "#dc3545"); width:15px; height:15px">
+                </span>
+            </td>
+            <td>@pizza.Price</td>
+            <td>
+                <button @onclick="() => EditPizza(pizza.Id)" class="btn btn-primary">Editar</button>
+                <button @onclick="() => DeletePizza(pizza.Id)" class="btn btn-danger">Eliminar</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+
+</table>
+
+
+@code {
+    List<Model.Pizza>? _pizzas = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetPizzas();
+    }
+    
+    private async Task<List<Model.Pizza>?> GetPizzas()
+    {
+        _pizzas = await Http.GetFromJsonAsync<List<Model.Pizza>>("api/pizza/");
+        Console.WriteLine(_pizzas);
+        return _pizzas;
+    }
+
+    private void EditPizza(int id)
+    {
+        NavigationManager.NavigateTo($"/pizza/{id}");
+    }
+
+    private async Task DeletePizza(int id)
+    {
+        await Http.DeleteAsync($"api/pizza/{id}");
+        await GetPizzas();
+    }
+
+    private void CreatePizza()
+    {
+        NavigationManager.NavigateTo("/pizza");
+    }
+
+}

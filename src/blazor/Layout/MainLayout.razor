@@ -1,0 +1,35 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <div class="sidebar">
+                <NavMenu/>
+            </div>
+
+            <main>
+                <div class="top-row px-4">
+                    <button type="button" class="btn btn-link" @onclick="OnLogoutClicked">Logout</button>
+                </div>
+
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        @Body
+    </NotAuthorized>
+    <Authorizing>
+        @Body
+    </Authorizing>
+</AuthorizeView>
+
+@code {
+    void OnLogoutClicked()
+    {
+        NavigationManager.NavigateTo("/logout");
+    }
+}

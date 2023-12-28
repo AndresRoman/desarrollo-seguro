@@ -1,0 +1,87 @@
+﻿@page "/pizza"
+@page "/pizza/{id:int}"
+@using blazor.Model
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@if (Id is null)
+{
+    <PageTitle>Pizza</PageTitle>
+    <h3>Create Pizza</h3>
+}
+else
+{
+    <PageTitle>Editar @_pizza.Name</PageTitle>
+    <h3>Editar @_pizza.Name</h3>
+}
+
+
+<EditForm Model="_pizza" OnSubmit="HandleSubmitPizza">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <div class="mb-3">
+        <label for="name" class="form-label">Nombre</label>
+        <InputText id="name" @bind-Value="_pizza.Name" class="form-control"/>
+        <ValidationMessage For="@(() => _pizza.Name)"/>
+    </div>
+    <div class="mb-3">
+        <label for="price" class="form-label">Price</label>
+        <InputNumber id="price" @bind-Value="_pizza.Price" class="form-control"/>
+        <ValidationMessage For="@(() => _pizza.Price)"/>
+    </div>
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="IsGlutenFree" @bind="_pizza.IsGlutenFree">
+        <label class="form-check-label" for="IsGlutenFree">GlutenFree</label>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="size" class="form-label">Size</label>
+        <InputSelect @bind-Value="@_pizza.Size" class="form-select" id="size">
+            @foreach (var size in Enum.GetValues(typeof(PizzaSize)))
+            {
+                <option value="@size">@size</option>
+            }
+        </InputSelect>
+    </div>
+    <button type="button" class="btn btn-danger" @onclick="Cancel">Cancel</button>
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    Model.Pizza _pizza = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is not null)
+        {
+            var result = await Http.GetFromJsonAsync<Model.Pizza>($"/api/pizza/{Id}");
+            if (result is not null)
+            {
+                _pizza = result;
+                return;
+            }
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    public async Task HandleSubmitPizza()
+    {
+        if (Id is null)
+        {
+            await Http.PostAsJsonAsync("/api/pizza", _pizza);
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        _pizza.Id = Id ?? 0;
+        await Http.PutAsJsonAsync($"/api/pizza/{_pizza.Id}", _pizza);
+        NavigationManager.NavigateTo("/");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+}
